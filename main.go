@@ -44,19 +44,7 @@ func main() {
 	//TODO Auslagern.
 	// Method: GET
 	// Resource http://localhost:8080
-	app.Handle("GET", "/stocks", func(ctx iris.Context) {
-
-		stocks := make(map[int64]Stock)
-		err := orm.Find(&stocks)
-
-		app.Logger().Debug("Stocks: ", stocks)
-
-		if err != nil {
-			app.Logger().Fatalf("orm failed to load stocks: %v", err)
-		}
-
-		ctx.JSON(iris.Map{"stocks": stocks})
-	})
+	app.Handle("GET", "/stocks", listStocks)
 
 	// app.Post("/stocks", postStock)
 
@@ -104,4 +92,17 @@ func seedData() {
 	if count == 0 {
 		orm.Insert(&Stock{Name: "Apple", Value: 17780}, &Stock{Name: "Alphabet Inc Class A", Value: 102140})
 	}
+}
+
+func listStocks(ctx iris.Context) {
+	stocks := make(map[int64]Stock)
+	err := orm.Find(&stocks)
+
+	app.Logger().Debug("Stocks: ", stocks)
+
+	if err != nil {
+		app.Logger().Fatalf("orm failed to load stocks: %v", err)
+	}
+
+	ctx.JSON(iris.Map{"stocks": stocks})
 }
