@@ -34,14 +34,12 @@ func main() {
 	app.Use(logger.New())
 
 	// Establish DB connection
-	// orm, err := xorm.NewEngine("sqlite3", "./test.db")
 	orm = connectDatabase()
 
 	createDbSchema()
 
 	seedData()
 
-	//TODO Auslagern.
 	// Method: GET
 	// Resource http://localhost:8080
 	app.Handle("GET", "/stocks", listStocks)
