@@ -22,8 +22,11 @@ type Stock struct {
 	UpdatedAt time.Time `xorm:"updated"`
 }
 
+var app *iris.Application
+var orm *xorm.Engine
+
 func main() {
-	app := iris.New()
+	app = iris.New()
 	app.Logger().SetLevel("debug")
 
 	// recover panics
@@ -32,29 +35,13 @@ func main() {
 
 	// Establish DB connection
 	// orm, err := xorm.NewEngine("sqlite3", "./test.db")
-	orm, err := xorm.NewEngine("postgres", "user=jfischer dbname=gostock sslmode=disable")
+	orm = connectDatabase()
 
-	if err != nil {
-		app.Logger().Fatalf("orm failed to initialized: %v", err)
-	}
+	createDbSchema()
 
-	// Create schema
-	err = orm.Sync2(new(Stock))
+	seedData()
 
-	// Close ORM later
-	iris.RegisterOnInterrupt(func() {
-		orm.Close()
-	})
-
-	stock := Stock{Name: "Apple", Value: 17780}
-
-	// Seed
-	doesExist, err := orm.Exist(&stock)
-
-	if !doesExist {
-		orm.Insert(&stock, &Stock{Name: "Alphabet Inc Class A", Value: 102140})
-	}
-
+	//TODO Auslagern.
 	// Method: GET
 	// Resource http://localhost:8080
 	app.Handle("GET", "/stocks", func(ctx iris.Context) {
@@ -71,18 +58,50 @@ func main() {
 		ctx.JSON(iris.Map{"stocks": stocks})
 	})
 
-	// same as app.Handle("GET", "/ping", ..)
-	// Method: GET
-	// Resource: http://localhost:8080/ping
-	app.Get("/ping", func(ctx iris.Context) {
-		ctx.WriteString("pong")
-	})
-
-	// Method: GET
-	// Resource: http://localhost:8080/hello
-	app.Get("/hello", func(ctx iris.Context) {
-		ctx.JSON(iris.Map{"message": "Hello Iris!"})
-	})
+	// app.Post("/stocks", postStock)
 
 	app.Run(iris.Addr(":8080"), iris.WithoutServerError(iris.ErrServerClosed))
+}
+
+// func postStock(ctx iris.Context) {
+// 	stock := Stock{}
+// 	err := ctx.ReadForm(&stock)
+
+// 	// read stock from params
+// 	ctx.JSON(iris.Map{"success": true})
+// }
+
+func connectDatabase() *xorm.Engine {
+	orm, err := xorm.NewEngine("postgres", "user=jfischer dbname=gostock sslmode=disable")
+	if err != nil {
+		app.Logger().Fatalf("orm failed to initialized: %v", err)
+	}
+
+	// Close ORM later
+	iris.RegisterOnInterrupt(func() {
+		orm.Close()
+	})
+	return orm
+}
+
+func createDbSchema() {
+	// Create schema
+	err := orm.Sync2(new(Stock))
+	if err != nil {
+		app.Logger().Fatalf("Cannot create db schema: ", err)
+	}
+}
+
+func seedData() {
+
+	// Seed
+	count, err := orm.Count(new(Stock))
+
+	if err != nil {
+		app.Logger().Fatalf("Cannot retrieve data from db during seed check: ", err)
+	}
+
+	if count == 0 {
+		orm.Insert(&Stock{Name: "Apple", Value: 17780}, &Stock{Name: "Alphabet Inc Class A", Value: 102140})
+	}
 }
