@@ -1,6 +1,8 @@
 package main
 
 import (
+	"encoding/json"
+	"os"
 	"time"
 
 	"github.com/go-xorm/xorm"
@@ -20,6 +22,14 @@ type Stock struct {
 	CreatedAt time.Time `xorm:"created"`
 	UpdatedAt time.Time `xorm:"updated"`
 }
+
+// type DataServiceCredentials struct {
+// 	Host         string
+// 	DatabaseName string
+// 	Username     string
+// 	Password     string
+// 	Port         string
+// }
 
 var app *iris.Application
 var orm *xorm.Engine
@@ -49,9 +59,22 @@ func main() {
 }
 
 func connectDatabase() *xorm.Engine {
-	orm, err := xorm.NewEngine("postgres", "user=jfischer dbname=gostock sslmode=disable")
+
+	// Assumption: We are in a CF like environment. https://docs.cloudfoundry.org/devguide/deploy-apps/environment-variable.html#VCAP-SERVICES
+	vcapServices := os.Getenv("VCAP_SERVICES")
+
+	var credentials interface{} // := DataServiceCredentials{}
+	err := json.Unmarshal([]byte(vcapServices), &credentials)
+
 	if err != nil {
-		app.Logger().Fatalf("orm failed to initialized: %v", err)
+		app.Logger().Fatalf("Couldn't read database credentials from VCAP_SERVICES ENV variable. Are we in a Cloud Foundry? %v", err)
+	}
+
+	app.Logger().Debug("Cred: ", credentials)
+
+	orm, err := xorm.NewEngine("postgres", "host=localhost user=jfischer dbname=gostock sslmode=disable")
+	if err != nil {
+		app.Logger().Fatalf("ORM failed to initialized: %v", err)
 	}
 
 	// Close ORM later
