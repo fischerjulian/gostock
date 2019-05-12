@@ -59,10 +59,11 @@ func databaseConnectionString() string {
 	host := a9spg.Credentials["host"]
 	dbName := a9spg.Credentials["name"]
 	userName := a9spg.Credentials["username"]
+	password := a9spg.Credentials["password"]
 	portF, _ := a9spg.Credentials["port"].(float64)
 	port := int(portF)
 
-	dbConnectionString := fmt.Sprintf("host=%s user=%s dbname=%s port=%d sslmode=disable", host, userName, dbName, port)
+	dbConnectionString := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%d sslmode=disable", host, userName, password, dbName, port)
 
 	// Note that this demo app logs the connection string including passwords to facilitate debugging during deployment.
 	app.Logger().Debug("DB Connection String: ", dbConnectionString)
