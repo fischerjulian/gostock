@@ -1,0 +1,7 @@
+---
+  applications:
+    - name: gostock
+      env:
+        GOVERSION: go1.12.4    
+        GOPACKAGENAME: gostock
+    

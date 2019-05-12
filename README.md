@@ -12,7 +12,11 @@ How to deploy the app on Cloud Foundry ...
 This application makes use of the [go buildpack](https://docs.cloudfoundry.org/buildpacks/go/index.html). 
 The automatic detection of the go buildpack works if the application uses [dep](https://github.com/golang/dep) for dependency management.
 
-    cf logs gostock --recent
+To workaround a problem with dep and Iris the following lines have been added to Gopkg.toml:
+
+    [[override]]
+    name = "github.com/flosch/pongo2"
+    branch = "master"
 
 ### Seeding
 
