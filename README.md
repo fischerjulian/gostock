@@ -8,7 +8,7 @@ deployment to Cloud Foundry. Code quality and functionality is limited to the de
 How to deploy the app on Cloud Foundry platform is described in a separate article.
 You might have to adapt application > name in manifest.yml in case the name has already been taken.
 
-The application work on paas.anynines using a9s PostgreSQL as well as on run.pivotal.io using ElephantSQL.
+The application work on [paas.anynines](paas.anynines) using [a9s PostgreSQL](https://www.anynines.com/) as well as on run.pivotal.io using ElephantSQL.
 
 ### The Go Buildpack
 
