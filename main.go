@@ -14,10 +14,10 @@ import (
 // Stock represents a single stock title.
 type Stock struct {
 	ID   int64  // auto-increment by-default by xorm
-	Name string `json:"name" validate:"required" xorm:"varchar(200)"`
+	Name string `form:"name" json:"name" validate:"required" xorm:"varchar(200)"`
 
 	// Value of the stock in EUR cent (no decimals)
-	Value     uint32    `json:"value" validate:"required"`
+	Value     uint32    `form:"value" json:"value" validate:"required"`
 	CreatedAt time.Time `xorm:"created"`
 	UpdatedAt time.Time `xorm:"updated"`
 }
@@ -44,18 +44,10 @@ func main() {
 	// Resource http://localhost:8080
 	app.Handle("GET", "/stocks", listStocks)
 
-	// app.Post("/stocks", postStock)
+	app.Post("/stock", postStock)
 
 	app.Run(iris.Addr(":8080"), iris.WithoutServerError(iris.ErrServerClosed))
 }
-
-// func postStock(ctx iris.Context) {
-// 	stock := Stock{}
-// 	err := ctx.ReadForm(&stock)
-
-// 	// read stock from params
-// 	ctx.JSON(iris.Map{"success": true})
-// }
 
 func connectDatabase() *xorm.Engine {
 	orm, err := xorm.NewEngine("postgres", "user=jfischer dbname=gostock sslmode=disable")
@@ -103,4 +95,20 @@ func listStocks(ctx iris.Context) {
 	}
 
 	ctx.JSON(iris.Map{"stocks": stocks})
+}
+
+func postStock(ctx iris.Context) {
+	stock := Stock{}
+	err := ctx.ReadForm(&stock)
+
+	app.Logger().Debug("Params:", ctx.Params())
+
+	if err != nil {
+		app.Logger().Errorf("Couldn't read form input in postStock: %v", err)
+	}
+
+	app.Logger().Debug("Submitted Stock:", stock)
+
+	// read stock from params
+	ctx.JSON(iris.Map{"success": true})
 }

@@ -11,4 +11,4 @@ How to deploy the app on Cloud Foundry ...
 
 Once the application is running its API can be used as follows. Examples are provided as CURL commands.
 
-     curl -d „stock=BASF&value=6523" -X POST http://localhost:8000/stock
+     curl -d „name=BASF&value=6523" -X POST http://localhost:8080/stock
