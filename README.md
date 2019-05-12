@@ -7,6 +7,7 @@ deployment to Cloud Foundry. Code quality and functionality is limited to the de
 
 How to deploy the app on Cloud Foundry ...
 
+
 ### The Go Buildpack
 
 This application makes use of the [go buildpack](https://docs.cloudfoundry.org/buildpacks/go/index.html). 
@@ -39,3 +40,17 @@ In order to create a stock entry execute the following CURL command:
      curl -d „name=BASF&value=6523" -X POST http://localhost:8080/stock
 
 Note that the value of stocks is given as EUR cents and therefore are represented as integers.
+
+## Local Development
+
+### VCAP_SERVICES Credentials
+
+If you want to develop locally you need to set environment VCAP variables such as:
+
+    export VCAP_APPLICATION='{"application_id":"f142621f-9307-4c28-a3aa-fb263abbbab1","application_name":"gostock","application_uris":["gostock.de.a9sapp.eu"],"application_version":"6ae902e7-6639-44cf-bb9a-715a8eaccf93","cf_api":"https://api.de.a9s.eu","limits":{"disk":512,"fds":16384,"mem":256},"name":"gostock","space_id":"dbbdec3c-8191-4c82-a3f9-1fdd31cc5fbf","space_name":"production","uris":["gostock.de.a9sapp.eu"],"users":null,"version":"6ae902e7-6639-44cf-bb9a-715a8eaccf93“}'d
+
+and
+
+    export VCAP_SERVICES='{"a9s-postgresql10":[{"binding_name":null,"credentials":{"host":"localhost","hosts":["localhostc"],"name":"gostock","password":"","port":5432,"uri":"postgres://jfischer:@localhost:5432/gostock","username":"jfischer"},"instance_name":"gostockdb","label":"a9s-postgresql10","name":"gostock","plan":"postgresql-single-nano","provider":null,"syslog_drain_url":null,"tags":["sql","database","object-relational","consistent"],"volume_mounts":[]}]}'
+
+The application will otherwise crash at startup.

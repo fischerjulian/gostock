@@ -1,8 +1,7 @@
 package main
 
 import (
-	"encoding/json"
-	"os"
+	"fmt"
 	"time"
 
 	"github.com/go-xorm/xorm"
@@ -10,6 +9,8 @@ import (
 	"github.com/kataras/iris/middleware/logger"
 	"github.com/kataras/iris/middleware/recover"
 	_ "github.com/lib/pq"
+
+	"github.com/cloudfoundry-community/go-cfenv"
 )
 
 // Stock represents a single stock title.
@@ -22,14 +23,6 @@ type Stock struct {
 	CreatedAt time.Time `xorm:"created"`
 	UpdatedAt time.Time `xorm:"updated"`
 }
-
-// type DataServiceCredentials struct {
-// 	Host         string
-// 	DatabaseName string
-// 	Username     string
-// 	Password     string
-// 	Port         string
-// }
 
 var app *iris.Application
 var orm *xorm.Engine
@@ -58,21 +51,30 @@ func main() {
 	app.Run(iris.Addr(":8080"), iris.WithoutServerError(iris.ErrServerClosed))
 }
 
+func databaseConnectionString() string {
+	appEnv, _ := cfenv.Current()
+	fmt.Println("Services:", appEnv.Services)
+
+	a9spg := appEnv.Services["a9s-postgresql10"][0]
+	host := a9spg.Credentials["host"]
+	dbName := a9spg.Credentials["name"]
+	userName := a9spg.Credentials["username"]
+	portF, _ := a9spg.Credentials["port"].(float64)
+	port := int(portF)
+
+	dbConnectionString := fmt.Sprintf("host=%s user=%s dbname=%s port=%d sslmode=disable", host, userName, dbName, port)
+
+	// Note that this demo app logs the connection string including passwords to facilitate debugging during deployment.
+	app.Logger().Debug("DB Connection String: ", dbConnectionString)
+
+	return dbConnectionString
+}
+
 func connectDatabase() *xorm.Engine {
 
-	// Assumption: We are in a CF like environment. https://docs.cloudfoundry.org/devguide/deploy-apps/environment-variable.html#VCAP-SERVICES
-	vcapServices := os.Getenv("VCAP_SERVICES")
+	connString := databaseConnectionString()
 
-	var credentials interface{} // := DataServiceCredentials{}
-	err := json.Unmarshal([]byte(vcapServices), &credentials)
-
-	if err != nil {
-		app.Logger().Fatalf("Couldn't read database credentials from VCAP_SERVICES ENV variable. Are we in a Cloud Foundry? %v", err)
-	}
-
-	app.Logger().Debug("Cred: ", credentials)
-
-	orm, err := xorm.NewEngine("postgres", "host=localhost user=jfischer dbname=gostock sslmode=disable")
+	orm, err := xorm.NewEngine("postgres", connString)
 	if err != nil {
 		app.Logger().Fatalf("ORM failed to initialized: %v", err)
 	}
@@ -88,7 +90,7 @@ func createDbSchema() {
 	// Create schema
 	err := orm.Sync2(new(Stock))
 	if err != nil {
-		app.Logger().Fatalf("Cannot create db schema: ", err)
+		app.Logger().Fatalf("Cannot create db schema. Maybe I was unable to connect to the DB: ", err)
 	}
 }
 
