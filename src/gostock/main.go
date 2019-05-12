@@ -55,15 +55,17 @@ func databaseConnectionString() string {
 	appEnv, _ := cfenv.Current()
 	fmt.Println("Services:", appEnv.Services)
 
-	a9spg := appEnv.Services["a9s-postgresql10"][0]
-	host := a9spg.Credentials["host"]
-	dbName := a9spg.Credentials["name"]
-	userName := a9spg.Credentials["username"]
-	password := a9spg.Credentials["password"]
-	portF, _ := a9spg.Credentials["port"].(float64)
-	port := int(portF)
+	var a9spg cfenv.Service
 
-	dbConnectionString := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%d sslmode=disable", host, userName, password, dbName, port)
+	if appEnv.Services["a9s-postgresql10"] != nil {
+		a9spg = appEnv.Services["a9s-postgresql10"][0]
+	} else if appEnv.Services["elephantsql"] != nil {
+		a9spg = appEnv.Services["elephantsql"][0]
+	} else {
+		app.Logger().Fatalf("Neither a9s PostgreSQL nor ElephantSQL has been found. I cannot do without. Please bind a service instance to the app.")
+	}
+
+	dbConnectionString := fmt.Sprintf("%s?sslmode=disable", a9spg.Credentials["uri"])
 
 	// Note that this demo app logs the connection string including passwords to facilitate debugging during deployment.
 	app.Logger().Debug("DB Connection String: ", dbConnectionString)
