@@ -101,8 +101,6 @@ func postStock(ctx iris.Context) {
 	stock := Stock{}
 	err := ctx.ReadForm(&stock)
 
-	app.Logger().Debug("Params:", ctx.Params())
-
 	if err != nil {
 		app.Logger().Errorf("Couldn't read form input in postStock: %v", err)
 	}
