@@ -107,6 +107,8 @@ func postStock(ctx iris.Context) {
 
 	app.Logger().Debug("Submitted Stock:", stock)
 
+	orm.Insert(&stock)
+
 	// read stock from params
 	ctx.JSON(iris.Map{"success": true})
 }
