@@ -7,6 +7,13 @@ deployment to Cloud Foundry. Code quality and functionality is limited to the de
 
 How to deploy the app on Cloud Foundry ...
 
+### The Go Buildpack
+
+This application makes use of the [go buildpack](https://docs.cloudfoundry.org/buildpacks/go/index.html). 
+The automatic detection of the go buildpack works if the application uses [dep](https://github.com/golang/dep) for dependency management.
+
+    cf logs gostock --recent
+
 ### Seeding
 
 The application automatically creates two entries upon its first start.
