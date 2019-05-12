@@ -1,6 +1,7 @@
 ---
   applications:
     - name: gostock
+      command: bin/gostock
       env:
         GOVERSION: go1.12.4    
         GOPACKAGENAME: gostock
